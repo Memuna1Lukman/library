@@ -5,7 +5,7 @@ from sqlalchemy import Column,Integer,String,TIMESTAMP,text,BigInteger,DateTime,
 
 
 
-class Users(Base):
+class User(Base):
     __tablename__ = "libraryUsers"
 
     id = Column(Integer,primary_key=True, index=True)
