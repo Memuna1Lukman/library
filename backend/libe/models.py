@@ -8,10 +8,11 @@ from sqlalchemy import Column,Integer,String,TIMESTAMP,text,BigInteger,DateTime,
 class Users(Base):
     __tablename__ = "libraryUsers"
 
-    id = Column()
-    username = Column()
-    email = Column()
-    password = Column()
+    id = Column(Integer,primary_key=True, index=True)
+    email = Column(String, unique=True, nullable=False, index=True)
+    username = Column(String, unique=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
     resources = relationship("Resource",back_populates="owner",cascade="all, delete-orphan")
@@ -19,10 +20,12 @@ class Users(Base):
 
 
 class Course(Base):
-    id = Column()
-    code = Column()
-    name = Column()
-    department = Column()
+    __tablename__ = "courses"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String, unique=True, nullable=False, index=True)  # e.g., "MATH101"
+    name = Column(String, nullable=False)                          # e.g., "Calculus I"
+    department = Column(String, nullable=False, index=True)
 
 
     resources = relationship("Resource", back_populates="course")
@@ -30,6 +33,8 @@ class Course(Base):
 
 
 class Resource(Base):
+    __tablename__ = "resources"
+
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     description = Column(String, nullable=True)
@@ -41,7 +46,7 @@ class Resource(Base):
     download_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())  #there is a lot function with the 
     # Foreign Keys
-    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    owner_id = Column(Integer, ForeignKey("libraryUsers.id", ondelete="CASCADE"), nullable=False)
     course_id = Column(Integer, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
 
     # Relationships
