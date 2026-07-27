@@ -23,4 +23,12 @@ class UserResponse(BaseModel):
 
 class LogInUser(BaseModel):
     email: EmailStr 
-    password: str    
+    hashed_password: str    
+
+class NewCourse(BaseModel):
+    code: str
+    name: str
+    department:str    
+
+class CourseResponse(NewCourse):
+    model_config = {"from_attributes":True}    

@@ -3,13 +3,13 @@ from .. import models,schemas,utils
 from ..database import get_db
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-route = APIRouter(
+router = APIRouter(
     tags=["Users"],
     prefix="/user"
 )
 
 
-route.post("/",status_code=status.HTTP_201_CREATED,response_model=schemas.UserResponse)
+@router.post("/",status_code=status.HTTP_201_CREATED,response_model=schemas.UserResponse)
 def create_user(user:schemas.NewUser,db:Session = Depends(get_db)):
     new_data = user.model_dump()
     new_data["password"] = utils.hash_password(user.password)

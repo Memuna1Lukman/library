@@ -12,11 +12,12 @@ router = APIRouter(
 
 @router.post("/")
 def login_user(user:OAuth2PasswordRequestForm=Depends(),db:Session = Depends(get_db)):
-    check_user = db.query(models.Users).filter(models.Users.email == user.username).first()
+    check_user = db.query(models.User).filter(models.User.email == user.username).first()
     if not check_user:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail=f"You are an authorized user")
     verify_password = utils.unhash_password(user.password,check_user.password)
     if not verify_password:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail=f"You are an authorized user")
     
-          
+    access_token = oauth2.create_token(data={"owner_id": check_user.id})
+    return {"token": access_token,"token_type":"bearer"}    
