@@ -61,7 +61,7 @@ def update_course(id:int,course:schemas.NewCourse,current_user= Depends(oauth2.g
     if query_courses is None : 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail = f"Course with the id {id} is not found")
 
-    courses.update(query_courses.dict(exclude_unset = True),synchronize_session=False)
+    courses.update(course.model_dump(),synchronize_session=False)
     db.commit()
     db.refresh(query_courses)
     return query_courses
@@ -78,4 +78,4 @@ def del_course(id:int,current_user = Depends(oauth2.get_current_user),db:Session
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="course not found")
     query_courses.delete(synchronize_session=False)
     db.commit()
-    return {"statas" : "Delete successful"}
+    return {"status" : "Delete successful"}

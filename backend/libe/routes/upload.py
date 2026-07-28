@@ -26,7 +26,6 @@ async def upload_files(
     title:str = Form(...),
     description:str = Form(...),
     file:UploadFile = File(...),
-    
     course_id:int=Form(...),
     db:Session = Depends(get_db),
     current_user = Depends(oauth2.get_current_user)
@@ -41,17 +40,19 @@ async def upload_files(
            )
 
     courses = db.query(models.Course).filter(models.Course.id == course_id).first()
-    if not courses:
+    if courses is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Course with ID {course_id} does not exist."
         )
+    print("bytes read:", len(contents))
     mime_type = magic.from_buffer(bytes(contents),mime=True)
+    print("detected mime:", repr(mime_type))
     if mime_type not in ALLOWED_MIME_TYPES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="The file type is not allowed")
 
-
+   
     # how to give the file a unique name
     file_extension = os.path.splitext(file.filename)[1]
     unique_filename = f"{uuid.uuid4().hex}{file_extension}"
@@ -64,7 +65,9 @@ async def upload_files(
     new_resources = models.Resource(
         title = title,
         description = description,
-        file_path = file_path,        
+        file_path = file_path,
+        file_size_bytes = contents,
+        mime_type = mime_type,       
         owner_id = current_user.id,
         course_id = courses.id
     )    
