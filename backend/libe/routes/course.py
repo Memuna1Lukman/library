@@ -3,7 +3,7 @@ from ..database import get_db
 from .. import oauth2,models,schemas
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-
+from typing import List 
 router = APIRouter(
     tags=["Courses"],
     prefix="/courses"
@@ -34,4 +34,48 @@ def create_course(course:schemas.NewCourse,current_user= Depends(oauth2.get_curr
                 )   
 
 
+@router.get("/",response_model=List[schemas.CourseResponse])
+def get_course(current_user = Depends(oauth2.get_current_user),db:Session = Depends(get_db)):
+    query_courses = db.query(models.Course).all()
+    if len(query_courses)==0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="No course found")
+    return query_courses
 
+@router.get("/{id}",response_model=schemas.CourseResponse)
+def get_by_id(id:int,current_user = Depends(oauth2.get_current_user),db:Session = Depends(get_db)):
+    query_courses = db.query(models.Course).filter(
+        models.Course.id == id
+    ).first()
+    if query_courses is None : 
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail = f"Course with the id {id} is not found")
+    return query_courses
+
+
+@router.put("/{id}",response_model=schemas.CourseResponse)
+def update_course(id:int,course:schemas.NewCourse,current_user= Depends(oauth2.get_current_user),db:Session = Depends(get_db)):
+    # query to see whether the id is present
+    courses = db.query(models.Course).filter(
+        models.Course.id == id
+    )
+    query_courses = courses.first()
+    if query_courses is None : 
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail = f"Course with the id {id} is not found")
+
+    courses.update(query_courses.dict(exclude_unset = True),synchronize_session=False)
+    db.commit()
+    db.refresh(query_courses)
+    return query_courses
+
+    # then make sure you update each row like you like it
+
+
+    
+@router.delete("/{id}")
+def del_course(id:int,current_user = Depends(oauth2.get_current_user),db:Session = Depends(get_db)):
+    query_courses = db.query(models.Course).filter(models.Course.id == id)
+    query = query_courses.first()
+    if query is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="course not found")
+    query_courses.delete(synchronize_session=False)
+    db.commit()
+    return {"statas" : "Delete successful"}
